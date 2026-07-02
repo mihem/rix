@@ -115,7 +115,13 @@ curl --proto '=https' --tlsv1.2 -sSf \
 Then, configure the `rstats-on-nix` binary cache. This will download pre-built
 binaries of many R packages, significantly speeding up the building process.
 Many thanks to [Cachix](https://www.cachix.org/) for sponsoring the
-`rstats-on-nix` cache!
+`rstats-on-nix` cache! Alternatively (or in addition), you can use the [binary
+attic cache](https://github.com/mihem/attic) by [Mischko Heming](https://mheming.com).
+It has the advantage of containing all R packages available in Nixpkgs (~32,000),
+with weekly updates since 2026-05-18. However, this is a private project running
+at a much smaller scale than the professional Cachix servers, and it only works
+for x86_64 Linux. For instructions, see
+[the section below](#using-the-binary-attic-cache).
 
 ### Recommended: Using setup_cachix()
 
@@ -194,6 +200,52 @@ nix.settings = {
 
 Then rebuild your system with `sudo nixos-rebuild switch` (or `home-manager
 switch` for Home Manager).
+
+### Using the binary attic cache
+
+To use the [binary attic cache](https://github.com/mihem/attic) by
+[Mischko Heming](https://mheming.com), configure your Nix settings as follows.
+If you are on NixOS, add the following to your `configuration.nix`:
+
+```nix
+{
+  nix.settings = {
+    extra-substituters = [
+      "https://osmzhlab.uni-muenster.de:4949/r-packages"
+    ];
+
+    extra-trusted-public-keys = [
+      "r-packages:Op7Q3XME8az4XNcP1clupGw4ZbuaguBw+sUziweqpTY="
+    ];
+  };
+}
+```
+
+For a regular Nix installation on Linux, add this to `~/.config/nix/nix.conf`:
+
+```text
+extra-substituters = https://osmzhlab.uni-muenster.de:4949/r-packages
+extra-trusted-public-keys = r-packages:Op7Q3XME8az4XNcP1clupGw4ZbuaguBw+sUziweqpTY=
+```
+
+For a flake-based project, you can use this in `flake.nix`:
+
+```nix
+{
+  nixConfig = {
+    extra-substituters = [
+      "https://osmzhlab.uni-muenster.de:4949/r-packages"
+    ];
+    extra-trusted-public-keys = [
+      "r-packages:Op7Q3XME8az4XNcP1clupGw4ZbuaguBw+sUziweqpTY="
+    ];
+  };
+}
+```
+
+On NixOS, rebuild your system with `sudo nixos-rebuild switch` (or
+`home-manager switch` for Home Manager). For regular Nix installations and
+flake-based projects, the settings are picked up on the next Nix operation.
 
 On Linux, once Nix is installed, all the software that will be installed through
 Nix will be saved to the `/nix` directory on the root partition. It is common
